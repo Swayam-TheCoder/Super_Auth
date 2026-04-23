@@ -38,3 +38,6 @@ coverage/
 
 # Optional: cache
 .cache/
+
+# notes
+notes.txt

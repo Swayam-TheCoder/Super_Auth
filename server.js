@@ -4,20 +4,16 @@ import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 import userRoutes from './routes/userRoutes.js';
-
+import connectDB from "./config/db.js";
 const app = express();
 
+connectDB();
 // Middleware
 app.use(express.json());
 app.use(cors());
 
 // Routes
 app.use('/api/users', userRoutes);
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
 
 //server
 app.listen(process.env.PORT, () => {

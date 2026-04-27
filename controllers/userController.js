@@ -1,6 +1,7 @@
 import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken";
+import crypto from 'crypto';
 
 // For signup
 export const signup = async (req, res) => {
@@ -37,6 +38,59 @@ export const login = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 }
+
+// forget password
+export const forgetPassword = async (req, res) => {
+  try{
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if(!user) return res.status(400).json({ message: 'user not found' });
+
+    const token = crypto.randomBytes(32).toString('hex'); // generate using crypto
+    user.resetToken = token;
+    user.resetTokenExpiration = Date.now() + 10 * 60 * 1000;
+    await user.save();
+    
+    // for now return token in response, later we can send email to user with this token
+    res.json({ 
+      message: 'Password forget token generated successfully', 
+      token: token 
+    });
+  } 
+  catch(err){
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// reset password
+export const resetPassword = async (req, res) => {
+  try{
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiration: { $gt: Date.now() }
+    })
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10); // 10 means salt rounds or It controls how complex the hashing is
+//     10 → standard (used in most apps)
+//     12+ → more secure, slightly slower
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
+
+    await user.save();
+    res.json({ message: "Password reset successful" });
+  } 
+  catch(err){
+    res.status(500).json({ error: err.message });
+  }
+};
 
 
 // Create a new user

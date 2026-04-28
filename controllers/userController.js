@@ -80,6 +80,7 @@ export const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10); // 10 means salt rounds or It controls how complex the hashing is
 //     10 → standard (used in most apps)
 //     12+ → more secure, slightly slower
+//    8 → faster, less secure (not recommended for production)
     user.password = hashedPassword;
     user.resetToken = undefined;
     user.resetTokenExpiration = undefined;
